@@ -147,6 +147,145 @@
     box-shadow: 0 0 0 3px var(--purple-glow);
   }
 
+  /* ===== Countdown de dias letivos ===== */
+  .countdown-wrap{
+    max-width: 480px;
+    margin: 24px auto 0;
+    padding: 18px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    text-align: center;
+    display: none; /* aparece via JS quando há uma data válida no futuro */
+  }
+
+  .countdown-label{
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .countdown-grid{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .countdown-unit{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 52px;
+  }
+
+  .countdown-value{
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--purple);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown-unit-label{
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .countdown-ended{
+    color: var(--purple);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  main{ max-width: 1000px; margin: 40px auto 0; }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .empty-state{
+    text-align: center;
+    color: var(--text-dim);
+    padding: 48px 16px;
+    display: none;
+  }
+
+  .card{
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .card:hover{
+    transform: translateY(-4px);
+    border-color: var(--purple);
+    background: var(--card-hover);
+    box-shadow: 0 12px 28px -10px var(--purple-glow);
+  }
+
+  .card-icon{
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-soft);
+  }
+
+  .card-icon svg{
+    width: 40px;
+    height: 40px;
+    stroke: var(--purple);
+  }
+
+  .card-body{ padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .card-title{ font-size: 1rem; font-weight: 600; line-height: 1.3; }
+  .card-desc{ font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; margin-bottom: 4px; }
+  .card-meta{ font-size: 0.72rem; color: var(--text-dim); opacity: 0.8; margin-bottom: 10px; }
+
+  .btn-download{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--purple-deep), var(--purple));
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .btn-download:hover{ opacity: 0.9; transform: scale(1.02); }
+  .btn-download svg{ width: 16px; height: 16px; stroke: #fff; }
+
+  footer{
+    text-align: center;
+    margin-top: 56px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    transition: color 0.25s ease;
+    cursor: default;
+  }
+  footer:hover{ color: #c77dff; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{ transition: none; }
+  }
+
+  @media (max-width: 520px){
+    .admin-badge-text{ display: none; }
+  }
   main{ max-width: 1000px; margin: 40px auto 0; }
 
   .grid{
@@ -359,7 +498,79 @@
   });
 
   renderCards(materiais);
+
+   // ===========================================
+  // COUNTDOWN DE DIAS LETIVOS — calendário Seduc-SP / PEI 2026
+  //
+  // FERIAS_DATE = último dia letivo antes do recesso.
+  // Edite se o calendário oficial mudar (ex: em anos seguintes).
+  //
+  // FERIADOS_NAO_LETIVOS = datas (seg-sex) sem aula dentro do
+  // período. Sábado e domingo já são descontados automaticamente.
+  // ===========================================
+  const COUNTDOWN_LABEL = "Dias letivos até as férias";
+  const FERIAS_DATE = new Date(2026, 11, 18); // 18/12/2026 (mês 0-indexado)
+  const FERIADOS_NAO_LETIVOS = [
+    "2026-09-07", // Independência do Brasil
+    "2026-10-12", // Nossa Senhora Aparecida
+    "2026-11-02", // Finados
+    "2026-11-20", // Consciência Negra
+    // "2026-10-15", // Dia do Professor — descomente se não tiver aula na sua escola
+  ];
+
+  function contarDiasLetivos(dataInicio, dataFim, feriados){
+    const feriadosSet = new Set(feriados);
+    let contador = 0;
+    const atual = new Date(dataInicio);
+    atual.setHours(0, 0, 0, 0);
+    const fim = new Date(dataFim);
+    fim.setHours(0, 0, 0, 0);
+
+    while (atual <= fim){
+      const diaSemana = atual.getDay(); // 0 = domingo, 6 = sábado
+      const isoDate = atual.toISOString().split('T')[0];
+
+      if (diaSemana !== 0 && diaSemana !== 6 && !feriadosSet.has(isoDate)){
+        contador++;
+      }
+      atual.setDate(atual.getDate() + 1);
+    }
+    return contador;
+  }
+
+  function startCountdownLetivo(targetDate, label, feriados){
+    const wrap = document.getElementById('countdownWrap');
+    const labelEl = document.getElementById('countdownLabel');
+    const gridEl = document.getElementById('countdownGrid');
+
+    labelEl.textContent = label || "Contagem regressiva";
+    wrap.style.display = "block";
+
+    function tick(){
+      const hoje = new Date();
+      const restantes = contarDiasLetivos(hoje, targetDate, feriados);
+
+      if (restantes <= 0){
+        gridEl.innerHTML = `<span class="countdown-ended">Muito obrigado por acompanhar o desenvolvimento desse site, Adeus.</span>`;
+        clearInterval(timer);
+        return;
+      }
+
+      gridEl.innerHTML = `
+        <div class="countdown-unit">
+          <span class="countdown-value">${restantes}</span>
+          <span class="countdown-unit-label">${restantes === 1 ? 'dia letivo' : 'dias letivos'}</span>
+        </div>`;
+    }
+
+    tick();
+    // Recalcula a cada minuto — não precisa de mais frequência já que a unidade é "dia"
+    const timer = setInterval(tick, 60000);
+  }
+
+  startCountdownLetivo(FERIAS_DATE, COUNTDOWN_LABEL, FERIADOS_NAO_LETIVOS);
 </script>
 
 </body>
 </html>
+
