@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Games</title>
+<title>Site Games</title>
 <link rel="icon" type="image/png" href="https://github.com/user-attachments/assets/70800093-fbb7-4fe3-b0b6-ec9c6c8c8500">
 <style>
   :root{
@@ -266,7 +266,37 @@
     text-decoration: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
   }
+  
+/* ===== Card "em breve" (placeholder, sem download) ===== */
+.card.em-breve{
+  border-style: dashed;
+  opacity: 0.6;
+}
 
+.card.em-breve:hover{
+  transform: none;
+  background: var(--card);
+  box-shadow: none;
+  border-color: var(--purple);
+}
+
+.card.em-breve .card-icon svg{ stroke: var(--text-dim); }
+
+.btn-disabled{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-soft);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px dashed var(--border);
+  cursor: default;
+}
+  
   .btn-download:hover{ opacity: 0.9; transform: scale(1.02); }
   .btn-download svg{ width: 16px; height: 16px; stroke: #fff; }
 
@@ -362,7 +392,22 @@
       imagem: "",
       tipo: "RAR · 2.6GB",
       driveId: "1DHWwZdPcfss-5P7AaxilGRBPZXAyM7C3"
-    }
+    },
+    {
+      titulo: "Possivel game...",
+      descricao: "Ainda sem previsão — fique de olho.",
+      status: "em_breve"
+    },
+    {
+      titulo: "Possivel game...",
+      descricao: "Ainda sem previsão — fique de olho.",
+      status: "em_breve"
+    },
+    {
+      titulo: "Possivel game...",
+      descricao: "Ainda sem previsão — fique de olho.",
+      status: "em_breve"
+}
   ];
 
   const grid = document.getElementById('cardGrid');
@@ -386,29 +431,32 @@
     return `https://drive.google.com/uc?export=download&id=${id}`;
   }
 
-  function renderCards(items){
-    grid.innerHTML = "";
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'card';
+function renderCards(items){
+  grid.innerHTML = "";
+  items.forEach(item => {
+    const isEmBreve = item.status === "em_breve";
+    const card = document.createElement('div');
+    card.className = isEmBreve ? 'card em-breve' : 'card';
 
-      card.innerHTML = `
-        <div class="card-icon">${fileIcon}</div>
-        <div class="card-body">
-          <div class="card-title">${item.titulo}</div>
-          <div class="card-desc">${item.descricao}</div>
-          <div class="card-meta">${item.tipo}</div>
-          <a class="btn-download" href="${driveDirectLink(item.driveId)}">
-            ${downloadIcon} Baixar
-          </a>
-        </div>
-      `;
+    const actionHtml = isEmBreve
+      ? `<span class="btn-disabled">🕒 Em breve</span>`
+      : `<a class="btn-download" href="${driveDirectLink(item.driveId)}">${downloadIcon} Baixar</a>`;
 
-      grid.appendChild(card);
-    });
+    card.innerHTML = `
+      <div class="card-icon">${fileIcon}</div>
+      <div class="card-body">
+        <div class="card-title">${item.titulo}</div>
+        <div class="card-desc">${item.descricao}</div>
+        ${item.tipo ? `<div class="card-meta">${item.tipo}</div>` : `<div class="card-meta">&nbsp;</div>`}
+        ${actionHtml}
+      </div>
+    `;
 
-    emptyState.style.display = items.length ? "none" : "block";
-  }
+    grid.appendChild(card);
+  });
+
+  emptyState.style.display = items.length ? "none" : "block";
+}
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
