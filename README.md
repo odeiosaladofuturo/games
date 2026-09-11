@@ -1,2 +1,2 @@
 # games
-Joguinhos pra vcs que estão entedeados do g+ games, vlw -Coiso
+Joguinhos pra vcs que estão entedeados do g+ games, vlw -Coiso Coisudo
